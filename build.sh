@@ -16,3 +16,5 @@ yarn generate:production;"
 
 cp -r 76/.output/public .output/public/76
 
+echo "/ /77/ 301" > .output/public/_redirects
+
