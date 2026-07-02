@@ -1,4 +1,4 @@
-name: Build and deploy to production
+name: Build and Deploy to production
 
 on:
   push:
@@ -37,24 +37,8 @@ jobs:
           path: ./.output
           include-hidden-files: true
 
-  # 2. Preview for review
-  preview:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: build-production
-          path: ./.output
-
-      - name: Make preview
-        run: |
-          echo "Deploying to preview environment..."
-
-  # 3. Once approved, deploy to external system
   deploy:
-    needs: preview
+    needs: build
     runs-on: ubuntu-latest
     environment: production 
     
