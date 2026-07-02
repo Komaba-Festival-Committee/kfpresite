@@ -33,8 +33,9 @@ jobs:
       - name: Upload built artifact
         uses: actions/upload-artifact@v5
         with:
-          name: build-package
+          name: build-production
           path: ./.output
+          include-hidden-files: true
 
   # 2. Preview for review
   preview:
@@ -44,7 +45,7 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v5
         with:
-          name: build-package
+          name: build-production
           path: ./.output
 
       - name: Make preview
