@@ -1,0 +1,68 @@
+name: CI/CD Build and Deploy
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: bash build-prod.sh 
+          
+      - name: Upload built artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-package
+          path: ./.output
+
+  # 2. Preview for review
+  preview:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-package
+          path: ./.output
+
+      - name: Make preview
+        run: |
+          echo "Deploying to preview environment..."
+
+  # 3. Once approved, deploy to external system
+  deploy:
+    needs: preview
+    runs-on: ubuntu-latest
+    environment: production 
+    
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-package
+          path: ./dist
+
+      - name: Deploy to External Production System
+        run: |
+          echo "Deploying approved package to external system..."
