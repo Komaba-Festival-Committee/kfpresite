@@ -1,4 +1,5 @@
 echo $(pwd)
+echo "Clear any previous output"
 rm -rf .output
 mkdir -p .output/production
 
@@ -9,11 +10,12 @@ rm -rf .nuxt .output node-modules;
 pnpm install --frozen-lockfile;
 pnpm generate:production;"
 
-cp -r 77/.output/public .output/production/77
+bash -cx "cp -r 77/.output/public .output/production/77"
 
 bash -cx "cd 76;
 rm -rf .nuxt .output node-modules;
 yarn install --frozen-lockfile;
 yarn generate:production;"
 
-cp -r 76/.output/public .output/production/76
+bash -cx "cp -r 76/.output/public .output/production/76"
+bash -cx "ls .output"
