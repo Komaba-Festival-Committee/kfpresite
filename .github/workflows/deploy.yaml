@@ -9,10 +9,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Get token to access submodules
+        id: get-kf-token
+        uses: getsentry/action-github-app-token@v4.0.0
+        with:
+          app_id: ${{ secrets.KF_CHECKOUT_SUBMODULES_APP_ID }}
+          private_key: ${{ secrets.KF_CHECKOUT_SUBMODULES_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ steps.get-kf-token.outputs.token }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
