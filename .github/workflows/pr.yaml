@@ -37,7 +37,7 @@ jobs:
           path: ./.output/qa
           include-hidden-files: true
 
-  preview:
+  preview-screenshot:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -133,4 +133,64 @@ jobs:
 
           **Mobile**
           ![About Mobile](${BASE_URL}/screenshot-about-mobile.png)"
- 
+
+  preview-deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    environment:
+      name: preview
+
+    steps:
+      - name: Get PR head short SHA to use for preview url
+        id: short-sha
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          SHORT_SHA="${PR_SHA::7}"
+          PREVIEW_URL="https://p-${SHORT_SHA}-preview-pr.komaba-festival-committee.workers.dev/"
+          echo "SHORT_SHA=$SHORT_SHA" >> "$GITHUB_ENV"
+          echo "PREVIEW_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+          echo "Short SHA: $SHORT_SHA"
+          echo "Preview URL (to be populated): $PREVIEW_URL"
+          echo "sha=${PR_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: build-qa-${{ github.event.pull_request.head.sha }}
+          path: ./qa
+
+      - name: Create Wrangler Configuration File
+        run: |
+          echo '{
+            "name": "preview-pr",
+            "compatibility_date": "2026-07-03",
+            "assets": {
+              "directory": "./qa/",
+              "not_found_handling": "404-page"
+            }
+          }' > wrangler.jsonc
+
+      - name: Install wrangler version 4
+        run: npm install --save-dev wrangler@4
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_PREVIEW }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID_PREVIEW }}
+          command: versions upload --preview-alias p-${{ steps.short-sha.outputs.sha }}
+
+      - name: Comment PR with Version URL
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.pull_request.number }} --repo "$GITHUB_REPOSITORY" --body "## Website preview uploaded to Cloudflare Workers by GitHub Actions
+
+          Access the [website preview](${PREVIEW_URL}) via this URL
+
+          [${PREVIEW_URL}](${PREVIEW_URL})
+          "
+
