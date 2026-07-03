@@ -61,3 +61,6 @@ rm -rf functions # make sure the authorization function is not put in prod!
 npx wrangler pages deploy .output/production --branch main --project-name=kfpresite-prod
 git checkout functions
 ```
+
+
+bad change
