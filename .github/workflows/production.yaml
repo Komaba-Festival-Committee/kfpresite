@@ -28,6 +28,9 @@ jobs:
           version: 10
 
       - name: Build package
+        env:
+          NUXT_PUBLIC_LIFF_ID: ${{ secrets.PROD_LIFF_ID }}
+          NUXT_PUBLIC_VOTE_API_URL: ${{ secrets.PROD_VOTE_API_URL }}
         run: bash build-prod.sh 
 
       - name: Upload built artifact
